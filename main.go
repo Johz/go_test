@@ -92,15 +92,18 @@ func main() {
 	api.Use(rest.DefaultDevStack...)
 	api.Use(&HttpLogMiddleware{
 		Realm: "test zone",
-		Authorizator: func(userId string, request *rest.Request) bool {
+		Authorizator: func(userId string, r *rest.Request) bool {
 
 			fmt.Println("fdadas")
-			fmt.Println(request.Host)
+			fmt.Println(r.Host)
+			fmt.Println(r.RemoteAddr)
+			fmt.Println(r.Host)
 			return true
 		},
 	})
 	router, err := rest.MakeRouter(
 		rest.Get("/test", GetTest),
+		rest.Get("/test/#Blade", GetTestBlade),
 		rest.Post("/test", PostTest),
 	)
 	if err != nil {
@@ -120,13 +123,33 @@ func main() {
 type Config struct {
 	Name  string
 	Value string
+	ID    string
+	Type  string
 }
 
 func GetTest(w rest.ResponseWriter, r *rest.Request) {
+	fmt.Println(r.RemoteAddr)
+	idStr := r.PathParam("Blade")
+	fmt.Println("id:" + idStr)
+	r.ParseForm()
+	id := r.Form.Get("id")
+	types := r.Form.Get("type")
+	fmt.Println(id + " " + types)
+
 	var config Config
 	config.Name = "Get"
 	config.Value = "Get return test"
+	config.ID = id
+	config.Type = types
 	w.WriteJson(config)
+}
+
+func GetTestBlade(w rest.ResponseWriter, r *rest.Request) {
+	fmt.Println(r.PathParam("Blade"))
+	r.ParseForm()
+	str := r.Form.Get("Blade")
+	fmt.Println(str)
+	w.WriteJson("")
 }
 
 func PostTest(w rest.ResponseWriter, r *rest.Request) {
